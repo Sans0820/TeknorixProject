@@ -1,0 +1,68 @@
+USE [JobOpening]
+GO
+/****** Object:  StoredProcedure [dbo].[ManageJobDetails]    Script Date: 4/15/2024 3:15:50 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[ManageJobDetails]
+    @Flag CHAR(1),
+	@id int,
+    @Title VARCHAR(50),
+    @Description VARCHAR(200),
+    @LocationId INT,
+    @DepartmentId INT,
+    @ClosingDate DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @Flag = 'I' 
+    BEGIN
+	 INSERT INTO NewJob (Title, Description, LocationId, DepartmentId, ClosingDate)
+         VALUES (@Title, @Description, @LocationId, @DepartmentId, @ClosingDate);
+    END
+    ELSE IF @Flag = 'U' 
+    BEGIN
+        UPDATE NewJob
+        SET Title = @Title,
+            Description = @Description,
+            LocationId = @LocationId,
+            DepartmentId = @DepartmentId,
+            ClosingDate = @ClosingDate	
+        WHERE 
+		Id=@id;
+    END
+    ELSE IF @Flag = 'D' 
+    BEGIN
+        DELETE FROM NewJob
+        WHERE 
+		id=@id;
+    END
+       ELSE IF @Flag = 'S' 
+    BEGIN
+        SELECT 
+          
+            nj.Code,
+            nj.title,
+            nj.description,
+            loc.LocationId ,
+            loc.title,
+            loc.city,
+            loc.state,
+            loc.country,
+            loc.zip,
+            dept.DepartmentId,
+            dept.Department AS department_title,
+            nj.openingDate AS postedDate, 
+            nj.ClosingDate
+        FROM 
+            NewJob nj
+        LEFT JOIN 
+            LocationTable loc ON nj.LocationId = loc.LocationId
+        LEFT JOIN 
+            DepartmentTable dept ON nj.DepartmentId = dept.DepartmentId
+        WHERE 
+            nj.Id = @id;
+    END
+END;
